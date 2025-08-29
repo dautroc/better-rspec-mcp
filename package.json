@@ -1,6 +1,6 @@
 {
   "name": "better-rspec-mcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Model Context Protocol server providing Better RSpec guidance, examples, and best practices",
   "main": "dist/index.js",
   "type": "module",
