@@ -10,6 +10,8 @@ This MCP server enables AI assistants to access structured RSpec knowledge and p
 
 ### 🛠️ Tools
 - **`get_rspec_guidance`** - Get Better Specs guidance for specific topics
+- **`search_rspec_guidelines`** - Search through Better Specs guidelines using keywords
+- **`get_category_overview`** - Get an overview of all guidelines in a specific category
 - **`generate_spec_example`** - Generate RSpec examples following best practices
 - **`validate_spec_code`** - Validate RSpec code against Better Specs guidelines
 - **`get_rspec_configuration`** - Get configuration templates and setup guidance
@@ -74,55 +76,6 @@ npm run build
     }
   }
 }
-```
-
-## Usage
-
-### Getting RSpec Guidance
-
-```typescript
-// Get guidance on specific topics
-await callTool('get_rspec_guidance', {
-  topic: 'let vs before blocks',
-  category: 'data-setup',
-  includeExamples: true
-});
-```
-
-### Generating Examples
-
-```typescript
-// Generate spec examples
-await callTool('generate_spec_example', {
-  specType: 'model',
-  scenario: 'user validation',
-  style: 'comprehensive'
-});
-```
-
-### Validating Code
-
-```typescript
-// Validate existing RSpec code
-await callTool('validate_spec_code', {
-  code: `describe User do
-    it 'should be valid' do
-      user.should be_valid
-    end
-  end`,
-  returnSuggestions: true
-});
-```
-
-### Getting Configuration Help
-
-```typescript
-// Get configuration templates
-await callTool('get_rspec_configuration', {
-  type: 'spec_helper',
-  projectType: 'rails',
-  features: ['webmock', 'simplecov']
-});
 ```
 
 ## Development
