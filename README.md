@@ -43,7 +43,7 @@ Add to your MCP client configuration (e.g., Claude Desktop):
   "mcpServers": {
     "better-rspec": {
       "command": "npx",
-      "args": ["--yes", "better-rspec-mcp"]
+      "args": ["--yes", "better-rspec-mcp@latest"]
     }
   }
 }
