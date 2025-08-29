@@ -271,10 +271,6 @@ Get RSpec configuration templates and setup guidance.
 5. Run linting and tests
 6. Submit a pull request
 
-## License
-
-MIT License - see LICENSE file for details.
-
 ## Acknowledgments
 
 - [Better Specs](https://www.betterspecs.org) - The original source of RSpec best practices
