@@ -1,0 +1,90 @@
+[
+  {
+    "id": "should-syntax-usage",
+    "name": "Using deprecated should syntax",
+    "description": "Using the old should syntax instead of modern expect syntax",
+    "problematicCode": "it 'should be valid' do\n  user.should be_valid\n  user.name.should == 'John'\nend",
+    "improvedCode": "it 'is valid' do\n  expect(user).to be_valid\n  expect(user.name).to eq('John')\nend",
+    "explanation": "The should syntax is deprecated in RSpec 3+. Use expect syntax for better readability, future compatibility, and to avoid monkey patching core Ruby classes.",
+    "category": "syntax",
+    "severity": "medium",
+    "tags": ["syntax", "deprecated", "expect", "should"]
+  },
+  {
+    "id": "multiple-expectations-unit-test",
+    "name": "Multiple expectations in unit tests",
+    "description": "Having multiple unrelated expectations in a single unit test",
+    "problematicCode": "it 'validates user properly' do\n  expect(user).to be_valid\n  expect(user.email).to include('@')\n  expect(user.created_at).to be_present\n  expect(user.role).to eq('user')\nend",
+    "improvedCode": "it { is_expected.to be_valid }\n\nit 'has valid email format' do\n  expect(user.email).to include('@')\nend\n\nit 'sets created_at timestamp' do\n  expect(user.created_at).to be_present\nend\n\nit 'defaults to user role' do\n  expect(user.role).to eq('user')\nend",
+    "explanation": "Multiple expectations in unit tests make it harder to identify which specific behavior failed. Split into separate tests for better failure isolation and clearer intent.",
+    "category": "structure",
+    "severity": "medium",
+    "tags": ["expectations", "unit-test", "failure-isolation"]
+  },
+  {
+    "id": "instance-variables-instead-of-let",
+    "name": "Using instance variables instead of let",
+    "description": "Setting up test data with instance variables in before blocks instead of using let",
+    "problematicCode": "describe User do\n  before do\n    @user = create(:user)\n    @admin = create(:user, role: 'admin')\n  end\n\n  it 'has correct role' do\n    expect(@user.role).to eq('user')\n  end\nend",
+    "improvedCode": "describe User do\n  let(:user) { create(:user) }\n  let(:admin) { create(:user, role: 'admin') }\n\n  it 'has correct role' do\n    expect(user.role).to eq('user')\n  end\nend",
+    "explanation": "Let provides lazy loading, memoization, and cleaner syntax. Instance variables are created whether used or not, while let only creates objects when referenced.",
+    "category": "data-setup",
+    "severity": "low",
+    "tags": ["let", "instance-variables", "lazy-loading", "performance"]
+  },
+  {
+    "id": "overmocking-internal-objects",
+    "name": "Over-mocking internal objects",
+    "description": "Mocking too many internal objects instead of testing real behavior",
+    "problematicCode": "it 'processes user data' do\n  allow(user).to receive(:name).and_return('John')\n  allow(user).to receive(:email).and_return('john@example.com')\n  allow(UserProcessor).to receive(:new).and_return(processor)\n  allow(processor).to receive(:process).and_return(true)\n  \n  expect(service.call).to be_truthy\nend",
+    "improvedCode": "it 'processes user data' do\n  user = create(:user, name: 'John', email: 'john@example.com')\n  \n  result = service.call(user)\n  \n  expect(result).to be_truthy\n  expect(user.reload.processed).to be true\nend",
+    "explanation": "Over-mocking couples tests to implementation details and makes them brittle. Test real behavior when possible, only mock external boundaries like HTTP requests, file system, or time.",
+    "category": "mocking",
+    "severity": "high",
+    "tags": ["mocking", "over-mocking", "real-behavior", "brittleness"]
+  },
+  {
+    "id": "long-test-descriptions",
+    "name": "Overly long test descriptions",
+    "description": "Test descriptions that are too long and should be split into contexts",
+    "problematicCode": "it 'should return 422 status code when user provides invalid email format and missing required fields' do\n  # test implementation\nend",
+    "improvedCode": "context 'when user data is invalid' do\n  context 'with invalid email format' do\n    it 'returns 422 status code' do\n      # test implementation\n    end\n  end\n  \n  context 'with missing required fields' do\n    it 'returns 422 status code' do\n      # test implementation\n    end\n  end\nend",
+    "explanation": "Long descriptions (>40 characters) should be split using contexts. This improves readability and allows testing different scenarios separately.",
+    "category": "structure",
+    "severity": "low",
+    "tags": ["descriptions", "contexts", "readability", "organization"]
+  },
+  {
+    "id": "testing-implementation-details",
+    "name": "Testing implementation details",
+    "description": "Testing how something works instead of what it does",
+    "problematicCode": "it 'calls the correct private methods' do\n  expect(service).to receive(:validate_input)\n  expect(service).to receive(:process_data)\n  expect(service).to receive(:send_notification)\n  \n  service.call\nend",
+    "improvedCode": "it 'processes user successfully' do\n  result = service.call(valid_user_data)\n  \n  expect(result).to be_success\n  expect(user.reload.status).to eq('processed')\n  expect(last_email.to).to eq(user.email)\nend",
+    "explanation": "Test behavior and outcomes, not implementation details. This makes tests more maintainable and less brittle when refactoring internal code structure.",
+    "category": "approach",
+    "severity": "high",
+    "tags": ["implementation", "behavior", "maintainability", "refactoring"]
+  },
+  {
+    "id": "fixtures-over-factories",
+    "name": "Using fixtures instead of factories",
+    "description": "Using Rails fixtures instead of FactoryBot factories for test data",
+    "problematicCode": "# fixtures/users.yml\njohn:\n  name: John Doe\n  email: john@example.com\n  role: admin\n\n# in test\nit 'processes admin user' do\n  user = users(:john)\n  expect(service.call(user)).to be_success\nend",
+    "improvedCode": "# spec/factories/users.rb\nFactoryBot.define do\n  factory :user do\n    name { 'John Doe' }\n    email { 'john@example.com' }\n    \n    trait :admin do\n      role { 'admin' }\n    end\n  end\nend\n\n# in test\nit 'processes admin user' do\n  user = create(:user, :admin)\n  expect(service.call(user)).to be_success\nend",
+    "explanation": "FactoryBot provides better control, flexibility, and readability than fixtures. Factories are more explicit about what data is being created and allow easy customization.",
+    "category": "data-setup",
+    "severity": "medium",
+    "tags": ["factories", "fixtures", "factorybot", "test-data"]
+  },
+  {
+    "id": "no-contexts-for-conditions",
+    "name": "Not using contexts for different conditions",
+    "description": "Testing different scenarios without organizing them into contexts",
+    "problematicCode": "describe '#calculate_total' do\n  it 'returns 0 for empty cart' do\n    # test empty cart\n  end\n  \n  it 'returns sum when cart has items' do\n    # test cart with items\n  end\n  \n  it 'applies discount when user is premium' do\n    # test premium user discount\n  end\nend",
+    "improvedCode": "describe '#calculate_total' do\n  context 'when cart is empty' do\n    it 'returns zero' do\n      # test empty cart\n    end\n  end\n  \n  context 'when cart has items' do\n    it 'returns sum of item prices' do\n      # test cart with items\n    end\n  end\n  \n  context 'when user is premium' do\n    it 'applies discount to total' do\n      # test premium user discount\n    end\n  end\nend",
+    "explanation": "Contexts help organize tests by conditions and make the test structure more readable. They also allow sharing setup between related tests.",
+    "category": "structure",
+    "severity": "low",
+    "tags": ["contexts", "organization", "conditions", "readability"]
+  }
+]

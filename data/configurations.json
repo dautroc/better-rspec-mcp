@@ -1,0 +1,47 @@
+[
+  {
+    "id": "basic-spec-helper",
+    "name": "Basic spec_helper.rb",
+    "description": "Basic RSpec configuration following Better Specs guidelines",
+    "type": "spec_helper",
+    "content": "RSpec.configure do |config|\n  # Use expect syntax only (no should)\n  config.expect_with :rspec do |expectations|\n    expectations.syntax = :expect\n    expectations.include_chain_clauses_in_custom_matcher_descriptions = true\n  end\n\n  # rspec-mocks config\n  config.mock_with :rspec do |mocks|\n    mocks.verify_partial_doubles = true\n  end\n\n  config.shared_context_metadata_behavior = :apply_to_host_groups\n\n  # Run specs in random order to surface order dependencies\n  config.order = :random\n  Kernel.srand config.seed\n\n  # Disable monkey patching\n  config.disable_monkey_patching!\n\n  # Enable flags like --only-failures and --next-failure\n  config.example_status_persistence_file_path = \".rspec_status\"\n\n  # Limit to one failure for fast feedback during development\n  config.fail_fast = 1\n\n  # Use documentation format when running a single file\n  config.default_formatter = 'doc' if config.files_to_run.one?\n\n  # Print the slowest examples\n  config.profile_examples = 10\nend",
+    "dependencies": ["rspec"],
+    "notes": "Enforces expect syntax, random test order, and includes performance profiling"
+  },
+  {
+    "id": "rails-helper-comprehensive",
+    "name": "Comprehensive Rails Helper",
+    "description": "Complete Rails helper configuration with FactoryBot, Capybara, and WebMock",
+    "type": "rails_helper",
+    "content": "require 'spec_helper'\nENV['RAILS_ENV'] ||= 'test'\nrequire_relative '../config/environment'\n\nabort(\"The Rails environment is running in production mode!\") if Rails.env.production?\n\nrequire 'rspec/rails'\nrequire 'capybara/rails'\nrequire 'webmock/rspec'\n\n# Requires supporting ruby files with custom matchers and macros\nDir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }\n\n# Checks for pending migrations and applies them before tests are run\nbegin\n  ActiveRecord::Migration.maintain_test_schema!\nrescue ActiveRecord::PendingMigrationError => e\n  abort e.to_s.strip\nend\n\nRSpec.configure do |config|\n  config.fixture_path = \"#{::Rails.root}/spec/fixtures\"\n  config.use_transactional_fixtures = true\n  config.infer_spec_type_from_file_location!\n  config.filter_rails_from_backtrace!\n\n  # Include FactoryBot methods\n  config.include FactoryBot::Syntax::Methods\n\n  # Include Devise test helpers\n  config.include Devise::Test::ControllerHelpers, type: :controller\n  config.include Devise::Test::IntegrationHelpers, type: :request\n\n  # Database Cleaner configuration\n  config.before(:suite) do\n    DatabaseCleaner.strategy = :transaction\n    DatabaseCleaner.clean_with(:truncation)\n  end\n\n  config.around(:each) do |example|\n    DatabaseCleaner.cleaning do\n      example.run\n    end\n  end\nend\n\n# WebMock configuration\nWebMock.disable_net_connect!(allow_localhost: true)",
+    "dependencies": ["rspec-rails", "factory_bot_rails", "capybara", "webmock", "database_cleaner", "devise"],
+    "notes": "Includes all common Rails testing gems and configurations"
+  },
+  {
+    "id": "guardfile-basic",
+    "name": "Basic Guardfile for RSpec",
+    "description": "Guard configuration for automatic test running with intelligent file mapping",
+    "type": "guardfile",
+    "content": "guard :rspec, cmd: \"bundle exec rspec\" do\n  require \"guard/rspec/dsl\"\n  dsl = Guard::RSpec::Dsl.new(self)\n\n  # RSpec files\n  rspec = dsl.rspec\n  watch(rspec.spec_helper) { rspec.spec_dir }\n  watch(rspec.spec_support) { rspec.spec_dir }\n  watch(rspec.spec_files)\n\n  # Ruby files\n  ruby = dsl.ruby\n  dsl.watch_spec_files_for(ruby.lib_files)\n\n  # Rails files\n  rails = dsl.rails(view_extensions: %w(erb haml slim))\n  dsl.watch_spec_files_for(rails.app_files)\n  dsl.watch_spec_files_for(rails.views)\n\n  watch(rails.controllers) do |m|\n    [\n      rspec.spec.call(\"routing/#{m[1]}_routing\"),\n      rspec.spec.call(\"controllers/#{m[1]}_controller\"),\n      rspec.spec.call(\"requests/#{m[1]}\")\n    ]\n  end\n\n  # Rails config changes\n  watch(rails.spec_helper)     { rspec.spec_dir }\n  watch(rails.routes)          { \"#{rspec.spec_dir}/routing\" }\n  watch(rails.app_controller)  { \"#{rspec.spec_dir}/controllers\" }\n\n  # Capybara features specs\n  watch(rails.view_dirs)     { |m| rspec.spec.call(\"features/#{m[1]}\") }\n  watch(rails.layouts)       { rspec.spec.call(\"features\") }\nend",
+    "dependencies": ["guard", "guard-rspec"],
+    "notes": "Provides intelligent file watching and automatic test execution"
+  },
+  {
+    "id": "rspec-config-basic",
+    "name": "Basic .rspec configuration",
+    "description": "Command-line options for RSpec following Better Specs recommendations",
+    "type": "rspec_config",
+    "content": "--require spec_helper\n--format documentation\n--color\n--fail-fast\n--order random",
+    "dependencies": ["rspec"],
+    "notes": "Sets up readable output, fast feedback, and random test order"
+  },
+  {
+    "id": "gemfile-testing-section",
+    "name": "Complete Testing Gemfile Section",
+    "description": "Comprehensive Gemfile section with all recommended testing gems",
+    "type": "gemfile",
+    "content": "group :development, :test do\n  gem 'rspec-rails'\n  gem 'factory_bot_rails'\n  gem 'faker'\n  gem 'pry-byebug'\nend\n\ngroup :test do\n  gem 'capybara'\n  gem 'selenium-webdriver'\n  gem 'webmock'\n  gem 'vcr'\n  gem 'simplecov', require: false\n  gem 'database_cleaner-active_record'\n  gem 'shoulda-matchers'\n  gem 'timecop'\nend\n\ngroup :development do\n  gem 'guard-rspec'\n  gem 'fuubar'\nend",
+    "dependencies": [],
+    "notes": "Includes all essential gems for comprehensive RSpec testing setup"
+  }
+]

@@ -1,0 +1,51 @@
+[
+  {
+    "id": "model-basic-validation",
+    "title": "Basic Model Validation Spec",
+    "description": "Simple model spec testing validations and basic behavior",
+    "specType": "model",
+    "scenario": "user validation",
+    "badCode": "describe 'User' do\n  it 'should be valid' do\n    @user = User.new(email: 'test@example.com')\n    @user.should be_valid\n  end\nend",
+    "goodCode": "RSpec.describe User, type: :model do\n  subject(:user) { build(:user, email: 'test@example.com') }\n\n  it { is_expected.to be_valid }\n  it { is_expected.to validate_presence_of(:email) }\n  it { is_expected.to validate_uniqueness_of(:email) }\nend",
+    "explanation": "Uses proper describe syntax, subject for DRY code, expect syntax, and one expectation per test",
+    "tags": ["model", "validation", "subject", "expect"],
+    "relatedGuidelines": ["expect_syntax", "subject_usage", "describe_naming"],
+    "complexity": "beginner"
+  },
+  {
+    "id": "request-api-comprehensive",
+    "title": "Comprehensive API Request Spec",
+    "description": "Complete API endpoint testing with authentication and error handling",
+    "specType": "request",
+    "scenario": "API endpoint testing",
+    "goodCode": "RSpec.describe 'Widgets API', type: :request do\n  let(:user) { create(:user) }\n  let(:auth_headers) { { 'Authorization' => \"Bearer #{user.auth_token}\" } }\n\n  describe 'GET /api/widgets' do\n    context 'when authenticated' do\n      let!(:widget) { create(:widget, user: user) }\n\n      it 'returns success status' do\n        get '/api/widgets', headers: auth_headers\n        expect(response).to have_http_status(:ok)\n      end\n\n      it 'returns user widgets' do\n        get '/api/widgets', headers: auth_headers\n        expect(json_response).to include(\n          hash_including('id' => widget.id)\n        )\n      end\n    end\n\n    context 'when not authenticated' do\n      it 'returns unauthorized status' do\n        get '/api/widgets'\n        expect(response).to have_http_status(:unauthorized)\n      end\n    end\n  end\n\n  private\n\n  def json_response\n    JSON.parse(response.body)\n  end\nend",
+    "explanation": "Tests both authenticated and unauthenticated scenarios, uses contexts properly, and includes helper methods",
+    "tags": ["request", "api", "authentication", "context"],
+    "relatedGuidelines": ["context_usage", "let_usage", "comprehensive_testing"],
+    "complexity": "intermediate"
+  },
+  {
+    "id": "system-user-workflow",
+    "title": "System Test for User Workflow",
+    "description": "End-to-end system test for complete user interaction",
+    "specType": "system",
+    "scenario": "user sign in workflow",
+    "goodCode": "RSpec.describe 'User authentication', type: :system do\n  describe 'signing in' do\n    let(:user) { create(:user, email: 'user@example.com', password: 'password123') }\n\n    context 'with valid credentials' do\n      it 'shows the dashboard' do\n        visit new_user_session_path\n        fill_in 'Email', with: user.email\n        fill_in 'Password', with: 'password123'\n        click_button 'Sign in'\n\n        expect(page).to have_content('Dashboard')\n        expect(page).to have_content(\"Welcome, #{user.name}\")\n        expect(current_path).to eq(dashboard_path)\n      end\n    end\n\n    context 'with invalid credentials' do\n      it 'shows error message' do\n        visit new_user_session_path\n        fill_in 'Email', with: user.email\n        fill_in 'Password', with: 'wrongpassword'\n        click_button 'Sign in'\n\n        expect(page).to have_content('Invalid email or password')\n        expect(current_path).to eq(new_user_session_path)\n      end\n    end\n  end\nend",
+    "explanation": "Tests complete user workflows from UI perspective, includes both success and failure scenarios",
+    "tags": ["system", "capybara", "user-workflow", "authentication"],
+    "relatedGuidelines": ["test_what_you_see", "context_usage"],
+    "complexity": "intermediate"
+  },
+  {
+    "id": "service-object-pattern",
+    "title": "Service Object Spec",
+    "description": "Testing service objects with success and failure scenarios",
+    "specType": "service",
+    "scenario": "email sending service",
+    "goodCode": "RSpec.describe SendWelcomeEmail, type: :service do\n  subject(:service) { described_class.new(user) }\n  let(:user) { create(:user, email: 'user@example.com') }\n\n  describe '#call' do\n    it 'enqueues the welcome email' do\n      expect { service.call }.to change { enqueued_jobs.size }.by(1)\n      \n      job = enqueued_jobs.last\n      expect(job['job_class']).to eq('WelcomeEmailJob')\n      expect(job['arguments']).to include(user.id)\n    end\n\n    context 'when user already received welcome email' do\n      before { user.update!(welcome_email_sent: true) }\n\n      it 'does not enqueue email' do\n        expect { service.call }.not_to change { enqueued_jobs.size }\n      end\n    end\n\n    context 'when user email is invalid' do\n      let(:user) { create(:user, email: 'invalid-email') }\n\n      it 'raises validation error' do\n        expect { service.call }.to raise_error(SendWelcomeEmail::InvalidEmailError)\n      end\n    end\n  end\nend",
+    "explanation": "Tests service object behavior with proper subject usage and comprehensive scenario coverage",
+    "tags": ["service", "subject", "change-matcher", "error-handling"],
+    "relatedGuidelines": ["subject_usage", "comprehensive_testing", "change_matchers"],
+    "complexity": "intermediate"
+  }
+]
