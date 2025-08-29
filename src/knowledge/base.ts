@@ -1,5 +1,6 @@
 import { promises as fs } from 'fs';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import Fuse from 'fuse.js';
 import { 
@@ -23,6 +24,15 @@ export class KnowledgeBase {
   private exampleSearchIndex?: Fuse<CodeExample>;
   
   private initialized = false;
+  private readonly packageRoot: string;
+
+  constructor() {
+    // Get the package root directory (where package.json is located)
+    const currentFileUrl = import.meta.url;
+    const currentFilePath = fileURLToPath(currentFileUrl);
+    // Go up from dist/knowledge/base.js to package root
+    this.packageRoot = path.resolve(path.dirname(currentFilePath), '..', '..');
+  }
 
   async initialize(): Promise<void> {
     if (this.initialized) return;
@@ -48,7 +58,7 @@ export class KnowledgeBase {
   }
 
   private async loadGuidelines(): Promise<void> {
-    const dataDir = path.join(process.cwd(), 'data', 'guidelines');
+    const dataDir = path.join(this.packageRoot, 'data', 'guidelines');
     
     try {
       const files = await fs.readdir(dataDir);
@@ -81,7 +91,7 @@ export class KnowledgeBase {
 
   private async loadExamples(): Promise<void> {
     // Load examples from structured data files
-    const examplesPath = path.join(process.cwd(), 'data', 'examples.json');
+    const examplesPath = path.join(this.packageRoot, 'data', 'examples.json');
     
     try {
       const content = await fs.readFile(examplesPath, 'utf-8');
@@ -98,7 +108,7 @@ export class KnowledgeBase {
   }
 
   private async loadAntiPatterns(): Promise<void> {
-    const antipatternsPath = path.join(process.cwd(), 'data', 'antipatterns.json');
+    const antipatternsPath = path.join(this.packageRoot, 'data', 'antipatterns.json');
     
     try {
       const content = await fs.readFile(antipatternsPath, 'utf-8');
@@ -114,7 +124,7 @@ export class KnowledgeBase {
   }
 
   private async loadConfigurations(): Promise<void> {
-    const configurationsPath = path.join(process.cwd(), 'data', 'configurations.json');
+    const configurationsPath = path.join(this.packageRoot, 'data', 'configurations.json');
     
     try {
       const content = await fs.readFile(configurationsPath, 'utf-8');
