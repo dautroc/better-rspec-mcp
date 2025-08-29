@@ -31,9 +31,25 @@ This MCP server enables AI assistants to access structured RSpec knowledge and p
 
 ### Prerequisites
 - Node.js 18+
-- npm or yarn
 
-### Setup
+### Quick Setup (Recommended)
+
+**Using npx (no installation required):**
+
+Add to your MCP client configuration (e.g., Claude Desktop):
+
+```json
+{
+  "mcpServers": {
+    "better-rspec": {
+      "command": "npx",
+      "args": ["better-rspec-mcp"]
+    }
+  }
+}
+```
+
+### Alternative: Local Development Setup
 
 1. **Clone and install dependencies:**
 ```bash
@@ -48,8 +64,6 @@ npm run build
 ```
 
 3. **Configure MCP client:**
-
-Add to your MCP client configuration (e.g., Claude Desktop):
 
 ```json
 {
