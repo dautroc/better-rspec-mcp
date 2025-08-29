@@ -19,7 +19,7 @@ const nodeModulesPath = join(packageRoot, 'node_modules');
 if (!existsSync(nodeModulesPath)) {
   console.error('Installing dependencies...');
   
-  const npm = spawn('npm', ['install', '--production'], {
+  const npm = spawn('npm', ['install'], {
     cwd: packageRoot,
     stdio: 'inherit'
   });
